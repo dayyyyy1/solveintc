@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solver de Integrales sobre Círculos</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.9.0/math.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+            color: #f1f2f6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00cec9, #a29bfe);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .subtitle {
+            color: #b2bec3;
+            font-size: 1.1rem;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .panel-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #00cec9;
+            border-bottom: 2px solid rgba(0, 206, 201, 0.3);
+            padding-bottom: 10px;
+        }
+        .panel-title i {
+            margin-right: 10px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            color: #dfe6e9;
+        }
+        .input-label i {
+            margin-right: 8px;
+            color: #a29bfe;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #f1f2f6;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+        }
+        .circle-params {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .param-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .param-label {
+            font-size: 0.9rem;
+            color: #b2bec3;
+            margin-bottom: 5px;
+        }
+        .param-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #00cec9;
+        }
+        .slider-container {
+            margin: 20px 0;
+        }
+        .slider-container input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            outline: none;
+        }
+        .examples {
+            margin-top: 20px;
+        }
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .example-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f1f2f6;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+        .example-btn:hover {
+            background: rgba(0, 206, 201, 0.2);
+        }
+        .calculate-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #00cec9, #a29bfe);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 206, 201, 0.3);
+        }
+        .calculate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .graph-container {
+            height: 500px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .results {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 25px;
+        }
+        .result-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .result-title {
+            color: #00cec9;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .result-title i {
+            margin-right: 8px;
+        }
+        .result-value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #f1f2f6;
+        }
+        .result-sub {
+            font-size: 0.9rem;
+            color: #b2bec3;
+            margin-top: 5px;
+        }
+        .error-message {
+            background: rgba(255, 118, 117, 0.1);
+            border: 1px solid rgba(255, 118, 117, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            color: #ff7675;
+            display: none;
+        }
+        .info-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .info-box strong {
+            color: #00cec9;
+        }
+        .theorem-box {
+            background: rgba(0, 206, 201, 0.1);
+            border-left: 4px solid #00cec9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #b2bec3;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-circle"></i> Integrales sobre Contornos Circulares</h1>
+            <p class="subtitle">Cálculo numérico de ∮ f(z) dz sobre círculos |z - c| = R</p>
+        </header>
+
+        <div class="content">
+            <div class="panel">
+                <div class="panel-title">
+                    <i class="fas fa-sliders-h"></i> Configuración
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        <i class="fas fa-function"></i> Función f(z)
+                    </div>
+                    <input type="text" id="functionInput" class="input-field" 
+                           placeholder="Ej: 1/z, sin(z)/(z^2+1), exp(z)" 
+                           value="1/(z^2+1)">
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        <i class="fas fa-circle"></i> Parámetros del Círculo
+                    </div>
+                    <div class="circle-params">
+                        <div class="param-box">
+                            <div class="param-label">Centro (Re)</div>
+                            <input type="number" id="centerRe" class="input-field" value="0" step="0.1">
+                        </div>
+                        <div class="param-box">
+                            <div class="param-label">Centro (Im)</div>
+                            <input type="number" id="centerIm" class="input-field" value="0" step="0.1">
+                        </div>
+                        <div class="param-box">
+                            <div class="param-label">Radio R</div>
+                            <input type="number" id="radius" class="input-field" value="1" step="0.1" min="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        <i class="fas fa-ruler"></i> Segmentos (N = <span id="segmentValue">128</span>)
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" id="segmentSlider" min="32" max="512" value="128" step="32">
+                    </div>
+                    <div class="info-box">
+                        <strong>Precisión:</strong> Más segmentos = Mayor precisión pero más tiempo de cálculo
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        <i class="fas fa-sync-alt"></i> Dirección de Integración
+                    </div>
+                    <select id="directionSelect" class="input-field">
+                        <option value="ccw">Antihorario (CCW) - Sentido positivo</option>
+                        <option value="cw">Horario (CW) - Sentido negativo</option>
+                    </select>
+                </div>
+
+                <div class="examples">
+                    <div class="input-label">
+                        <i class="fas fa-lightbulb"></i> Ejemplos Rápidos
+                    </div>
+                    <div class="example-buttons">
+                        <button class="example-btn" data-example="simple-pole">1/(z-0.5)</button>
+                        <button class="example-btn" data-example="multiple-poles">1/(z²+1)</button>
+                        <button class="example-btn" data-example="entire">z²</button>
+                        <button class="example-btn" data-example="essential">e^(1/z)</button>
+                        <button class="example-btn" data-example="rational">(z+1)/(z²-1)</button>
+                        <button class="example-btn" data-example="trig">sin(z)/z</button>
+                    </div>
+                </div>
+
+                <button id="calculateBtn" class="calculate-btn">
+                    <i class="fas fa-bolt"></i> Calcular Integral
+                </button>
+
+                <div id="errorMessage" class="error-message"></div>
+
+                <div class="theorem-box">
+                    <strong><i class="fas fa-info-circle"></i> Teorema del Residuo:</strong><br>
+                    ∮ f(z) dz = 2πi × Σ Residuos (polos dentro del círculo)
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    <i class="fas fa-project-diagram"></i> Visualización
+                </div>
+                <div id="graph" class="graph-container"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">
+                <i class="fas fa-chart-bar"></i> Resultados
+            </div>
+            
+            <div class="results">
+                <div class="result-box">
+                    <div class="result-title">
+                        <i class="fas fa-calculator"></i> Integral Numérica
+                    </div>
+                    <div class="result-value" id="numericResult">0.0000 + 0.0000i</div>
+                    <div class="result-sub">∮ f(z) dz sobre |z - c| = R</div>
+                </div>
+                
+                <div class="result-box">
+                    <div class="result-title">
+                        <i class="fas fa-brain"></i> Polos Dentro
+                    </div>
+                    <div class="result-value" id="polesResult">0 polos</div>
+                    <div class="result-sub">Singularidades dentro del círculo</div>
+                </div>
+                
+                <div class="result-box">
+                    <div class="result-title">
+                        <i class="fas fa-crosshairs"></i> Valor Teórico
+                    </div>
+                    <div class="result-value" id="theoreticalResult">0.0000 + 0.0000i</div>
+                    <div class="result-sub">2πi × Σ Residuos</div>
+                </div>
+                
+                <div class="result-box">
+                    <div class="result-title">
+                        <i class="fas fa-bullseye"></i> Error
+                    </div>
+                    <div class="result-value" id="errorResult">0.0000</div>
+                    <div class="result-sub">Error absoluto |num - teórico|</div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Configuración actual:</strong> 
+                Círculo |z - (<span id="currentCenter">0+0i</span>)| = <span id="currentRadius">1</span> 
+                • Segmentos: <span id="currentSegments">128</span> 
+                • Método: Simpson compuesto
+            </div>
+        </div>
+
+        <footer>
+            <p>Solver de Integrales Circulares • Análisis Complejo • Teorema del Residuo</p>
+            <p style="margin-top: 5px; font-size: 0.8rem;">
+                Contorno: Círculo |z - c| = R • math.js para evaluación • Plotly.js para gráficos
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Estado de la aplicación
+        let state = {
+            function: '1/(z^2+1)',
+            centerRe: 0,
+            centerIm: 0,
+            radius: 1,
+            segments: 128,
+            direction: 'ccw'
+        };
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            initializeGraph();
+            updateDisplay();
+            calculateIntegral();
+        });
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Entrada de función
+            document.getElementById('functionInput').addEventListener('input', function() {
+                state.function = this.value;
+            });
+
+            // Parámetros del círculo
+            document.getElementById('centerRe').addEventListener('input', function() {
+                state.centerRe = parseFloat(this.value) || 0;
+                updateDisplay();
+                updateGraph();
+            });
+
+            document.getElementById('centerIm').addEventListener('input', function() {
+                state.centerIm = parseFloat(this.value) || 0;
+                updateDisplay();
+                updateGraph();
+            });
+
+            document.getElementById('radius').addEventListener('input', function() {
+                state.radius = parseFloat(this.value) || 1;
+                updateDisplay();
+                updateGraph();
+            });
+
+            // Slider de segmentos
+            document.getElementById('segmentSlider').addEventListener('input', function() {
+                state.segments = parseInt(this.value);
+                document.getElementById('segmentValue').textContent = state.segments;
+                updateDisplay();
+            });
+
+            // Dirección
+            document.getElementById('directionSelect').addEventListener('change', function() {
+                state.direction = this.value;
+            });
+
+            // Ejemplos
+            document.querySelectorAll('.example-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    loadExample(this.dataset.example);
+                });
+            });
+
+            // Botón de cálculo
+            document.getElementById('calculateBtn').addEventListener('click', calculateIntegral);
+
+            // Calcular con Enter
+            document.getElementById('functionInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calculateIntegral();
+            });
+        }
+
+        // Cargar ejemplo
+        function loadExample(exampleName) {
+            const examples = {
+                'simple-pole': {
+                    func: '1/(z-0.5)',
+                    centerRe: 0,
+                    centerIm: 0,
+                    radius: 1
+                },
+                'multiple-poles': {
+                    func: '1/(z^2+1)',
+                    centerRe: 0,
+                    centerIm: 0,
+                    radius: 1.5
+                },
+                'entire': {
+                    func: 'z^2',
+                    centerRe: 0,
+                    centerIm: 0,
+                    radius: 2
+                },
+                'essential': {
+                    func: 'exp(1/z)',
+                    centerRe: 0,
+                    centerIm: 0,
+                    radius: 1
+                },
+                'rational': {
+                    func: '(z+1)/(z^2-1)',
+                    centerRe: 0,
+                    centerIm: 0,
+                    radius: 0.5
+                },
+                'trig': {
+                    func: 'sin(z)/z',
+                    centerRe: 0,
+                    centerIm: 0,
+                    radius: 1
+                }
+            };
+
+            const ex = examples[exampleName];
+            if (!ex) return;
+
+            document.getElementById('functionInput').value = ex.func;
+            document.getElementById('centerRe').value = ex.centerRe;
+            document.getElementById('centerIm').value = ex.centerIm;
+            document.getElementById('radius').value = ex.radius;
+
+            state.function = ex.func;
+            state.centerRe = ex.centerRe;
+            state.centerIm = ex.centerIm;
+            state.radius = ex.radius;
+
+            updateDisplay();
+            updateGraph();
+            showMessage(`Ejemplo cargado: ${exampleName}`, 'info');
+        }
+
+        // Actualizar display
+        function updateDisplay() {
+            document.getElementById('currentCenter').textContent = 
+                `${state.centerRe}${state.centerIm >= 0 ? '+' : ''}${state.centerIm}i`;
+            document.getElementById('currentRadius').textContent = state.radius.toFixed(2);
+            document.getElementById('currentSegments').textContent = state.segments;
+        }
+
+        // Mostrar mensaje
+        function showMessage(text, type = 'error') {
+            const element = document.getElementById('errorMessage');
+            element.textContent = text;
+            element.style.display = 'block';
+            
+            if (type === 'info') {
+                element.style.background = 'rgba(0, 206, 201, 0.1)';
+                element.style.borderColor = 'rgba(0, 206, 201, 0.3)';
+                element.style.color = '#00cec9';
+            } else {
+                element.style.background = 'rgba(255, 118, 117, 0.1)';
+                element.style.borderColor = 'rgba(255, 118, 117, 0.3)';
+                element.style.color = '#ff7675';
+            }
+            
+            if (type === 'info') {
+                setTimeout(() => element.style.display = 'none', 3000);
+            }
+        }
+
+        // Ocultar mensaje
+        function hideMessage() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // Evaluar función
+        function evaluateFunction(z, funcStr) {
+            try {
+                // Crear ámbito matemático
+                const scope = {
+                    i: math.complex(0, 1),
+                    pi: math.pi,
+                    e: math.e,
+                    z: math.complex(z.re, z.im),
+                    sin: (z) => math.sin(math.complex(z)),
+                    cos: (z) => math.cos(math.complex(z)),
+                    exp: (z) => math.exp(math.complex(z)),
+                    log: (z) => math.log(math.complex(z)),
+                    sqrt: (z) => math.sqrt(math.complex(z)),
+                    re: (z) => math.re(math.complex(z)),
+                    im: (z) => math.im(math.complex(z)),
+                    abs: (z) => math.abs(math.complex(z)),
+                    arg: (z) => math.arg(math.complex(z))
+                };
+
+                const result = math.evaluate(funcStr, scope);
+                
+                if (typeof result === 'number') {
+                    return { re: result, im: 0 };
+                } else if (math.isComplex(result)) {
+                    return { re: math.re(result), im: math.im(result) };
+                } else {
+                    throw new Error('Resultado no es número complejo');
+                }
+            } catch (error) {
+                throw new Error(`Error en función: ${error.message}`);
+            }
+        }
+
+        // Generar puntos del círculo
+        function generateCirclePoints() {
+            const points = [];
+            const n = state.segments;
+            const direction = state.direction === 'ccw' ? 1 : -1;
+            
+            for (let i = 0; i <= n; i++) {
+                const t = direction * i * 2 * Math.PI / n;
+                const x = state.centerRe + state.radius * Math.cos(t);
+                const y = state.centerIm + state.radius * Math.sin(t);
+                
+                points.push({
+                    z: { re: x, im: y },
+                    t: t,
+                    dz: {
+                        re: -state.radius * Math.sin(t),
+                        im: state.radius * Math.cos(t)
+                    }
+                });
+            }
+            
+            return points;
+        }
+
+        // Detectar polos
+        function detectPoles(points) {
+            const poles = [];
+            const func = state.function;
+            
+            // Detectar 1/(z-a)
+            const simplePoleRegex = /1\s*\/\s*\(\s*z\s*-\s*([^)]+)\s*\)/;
+            const match = func.match(simplePoleRegex);
+            
+            if (match) {
+                try {
+                    const aExpr = match[1].trim();
+                    const scope = { i: math.complex(0, 1) };
+                    const a = math.evaluate(aExpr, scope);
+                    
+                    let aRe, aIm;
+                    if (typeof a === 'number') {
+                        aRe = a;
+                        aIm = 0;
+                    } else if (math.isComplex(a)) {
+                        aRe = math.re(a);
+                        aIm = math.im(a);
+                    } else {
+                        aRe = 0;
+                        aIm = 0;
+                    }
+                    
+                    // Verificar si está dentro del círculo
+                    const dist = Math.sqrt(
+                        Math.pow(aRe - state.centerRe, 2) + 
+                        Math.pow(aIm - state.centerIm, 2)
+                    );
+                    
+                    if (dist < state.radius) {
+                        poles.push({ re: aRe, im: aIm, order: 1 });
+                    }
+                } catch (e) {
+                    console.log('No se pudo evaluar polo');
+                }
+            }
+            
+            // Detectar polos en 1/(z² + a²)
+            const quadraticPoleRegex = /1\s*\/\s*\(\s*z\s*\^\s*2\s*\+\s*([^)]+)\s*\)/;
+            const match2 = func.match(quadraticPoleRegex);
+            
+            if (match2) {
+                try {
+                    const aExpr = match2[1].trim();
+                    const scope = { i: math.complex(0, 1) };
+                    const aSquared = math.evaluate(aExpr, scope);
+                    
+                    let aValue;
+                    if (typeof aSquared === 'number') {
+                        aValue = Math.sqrt(Math.abs(aSquared));
+                        if (aSquared < 0) aValue *= -1;
+                    } else if (math.isComplex(aSquared)) {
+                        aValue = math.sqrt(aSquared);
+                    } else {
+                        aValue = math.complex(0, 0);
+                    }
+                    
+                    // Polos en z = ±ai
+                    const polesTemp = [];
+                    if (math.isComplex(aValue)) {
+                        polesTemp.push(
+                            { re: -math.im(aValue), im: math.re(aValue) },
+                            { re: math.im(aValue), im: -math.re(aValue) }
+                        );
+                    } else {
+                        polesTemp.push(
+                            { re: 0, im: aValue },
+                            { re: 0, im: -aValue }
+                        );
+                    }
+                    
+                    // Filtrar polos dentro del círculo
+                    polesTemp.forEach(pole => {
+                        const dist = Math.sqrt(
+                            Math.pow(pole.re - state.centerRe, 2) + 
+                            Math.pow(pole.im - state.centerIm, 2)
+                        );
+                        
+                        if (dist < state.radius) {
+                            poles.push({ re: pole.re, im: pole.im, order: 1 });
+                        }
+                    });
+                } catch (e) {
+                    console.log('No se pudo evaluar polos cuadráticos');
+                }
+            }
+            
+            return poles;
+        }
+
+        // Calcular integral
+        function calculateIntegral() {
+            const btn = document.getElementById('calculateBtn');
+            const originalText = btn.innerHTML;
+            
+            // Validar
+            if (!state.function.trim()) {
+                showMessage('Ingresa una función');
+                return;
+            }
+            
+            try {
+                // Probar función
+                evaluateFunction({re: 1, im: 0}, state.function);
+                
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculando...';
+                btn.disabled = true;
+                hideMessage();
+                
+                setTimeout(() => {
+                    try {
+                        // Generar puntos
+                        const points = generateCirclePoints();
+                        
+                        // Calcular integral (Simpson compuesto)
+                        let integral = { re: 0, im: 0 };
+                        const n = points.length - 1;
+                        
+                        for (let i = 0; i < n; i += 2) {
+                            if (i + 2 > n) break;
+                            
+                            const p0 = points[i];
+                            const p1 = points[i+1];
+                            const p2 = points[i+2];
+                            
+                            // Evaluar función
+                            const f0 = evaluateFunction(p0.z, state.function);
+                            const f1 = evaluateFunction(p1.z, state.function);
+                            const f2 = evaluateFunction(p2.z, state.function);
+                            
+                            // f(z) * dz/dt
+                            const fdz0 = {
+                                re: f0.re * p0.dz.re - f0.im * p0.dz.im,
+                                im: f0.re * p0.dz.im + f0.im * p0.dz.re
+                            };
+                            const fdz1 = {
+                                re: f1.re * p1.dz.re - f1.im * p1.dz.im,
+                                im: f1.re * p1.dz.im + f1.im * p1.dz.re
+                            };
+                            const fdz2 = {
+                                re: f2.re * p2.dz.re - f2.im * p2.dz.im,
+                                im: f2.re * p2.dz.im + f2.im * p2.dz.re
+                            };
+                            
+                            // Regla de Simpson
+                            const dt = (p2.t - p0.t) / 2;
+                            integral.re += dt/3 * (fdz0.re + 4*fdz1.re + fdz2.re);
+                            integral.im += dt/3 * (fdz0.im + 4*fdz1.im + fdz2.im);
+                        }
+                        
+                        // Detectar polos
+                        const poles = detectPoles(points);
+                        
+                        // Calcular valor teórico
+                        let theoretical = { re: 0, im: 0 };
+                        if (poles.length > 0) {
+                            const direction = state.direction === 'ccw' ? 1 : -1;
+                            const residueSum = poles.length; // Asumiendo residuo = 1 para polos simples
+                            theoretical = {
+                                re: 0,
+                                im: direction * 2 * Math.PI * residueSum
+                            };
+                        }
+                        
+                        // Actualizar resultados
+                        updateResults(integral, poles, theoretical);
+                        updateGraph(points, poles);
+                        
+                        showMessage('¡Cálculo completado!', 'info');
+                        
+                    } catch (error) {
+                        showMessage(`Error: ${error.message}`);
+                    } finally {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                }, 100);
+                
+            } catch (error) {
+                showMessage(`Error en función: ${error.message}`);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Actualizar resultados
+        function updateResults(integral, poles, theoretical) {
+            // Resultado numérico
+            document.getElementById('numericResult').textContent = 
+                `${integral.re.toFixed(6)} + ${integral.im.toFixed(6)}i`;
+            
+            // Polos
+            document.getElementById('polesResult').textContent = 
+                poles.length === 0 ? '0 polos' : `${poles.length} polo${poles.length > 1 ? 's' : ''}`;
+            
+            // Valor teórico
+            document.getElementById('theoreticalResult').textContent = 
+                `${theoretical.re.toFixed(6)} + ${theoretical.im.toFixed(6)}i`;
+            
+            // Error
+            const error = Math.sqrt(
+                Math.pow(integral.re - theoretical.re, 2) +
+                Math.pow(integral.im - theoretical.im, 2)
+            );
+            document.getElementById('errorResult').textContent = error.toFixed(6);
+        }
+
+        // Inicializar gráfico
+        function initializeGraph() {
+            const layout = {
+                title: `Círculo |z - (${state.centerRe}+${state.centerIm}i)| = ${state.radius}`,
+                xaxis: {
+                    title: 'Parte Real',
+                    scaleanchor: 'y',
+                    scaleratio: 1
+                },
+                yaxis: {
+                    title: 'Parte Imaginaria'
+                },
+                showlegend: true,
+                plot_bgcolor: 'rgba(0,0,0,0.1)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#f1f2f6' }
+            };
+            
+            Plotly.newPlot('graph', [], layout, { responsive: true });
+        }
+
+        // Actualizar gráfico
+        function updateGraph(points = null, poles = []) {
+            if (!points) points = generateCirclePoints();
+            
+            // Contorno
+            const contourX = points.map(p => p.z.re);
+            const contourY = points.map(p => p.z.im);
+            
+            const traceContour = {
+                x: contourX,
+                y: contourY,
+                mode: 'lines',
+                name: 'Contorno circular',
+                line: { color: '#00cec9', width: 3 }
+            };
+            
+            // Centro
+            const traceCenter = {
+                x: [state.centerRe],
+                y: [state.centerIm],
+                mode: 'markers',
+                name: 'Centro (c)',
+                marker: { color: '#a29bfe', size: 10 }
+            };
+            
+            // Polos
+            const tracePoles = {
+                x: poles.map(p => p.re),
+                y: poles.map(p => p.im),
+                mode: 'markers',
+                name: 'Polos',
+                marker: { color: '#e74c3c', size: 12, symbol: 'x' }
+            };
+            
+            // Flechas de dirección
+            const arrowCount = 8;
+            const arrowIndices = [];
+            for (let i = 0; i < arrowCount; i++) {
+                arrowIndices.push(Math.floor(i * points.length / arrowCount));
+            }
+            
+            const arrowX = arrowIndices.map(i => points[i].z.re);
+            const arrowY = arrowIndices.map(i => points[i].z.im);
+            
+            const traceArrows = {
+                x: arrowX,
+                y: arrowY,
+                mode: 'markers',
+                name: 'Dirección',
+                marker: { size: 1, color: 'rgba(0,0,0,0)' }
+            };
+            
+            // Datos
+            const data = [traceContour, traceCenter];
+            if (poles.length > 0) data.push(tracePoles);
+            data.push(traceArrows);
+            
+            // Layout
+            const padding = state.radius * 0.3;
+            const layout = {
+                title: `Círculo |z - (${state.centerRe}+${state.centerIm}i)| = ${state.radius.toFixed(2)}`,
+                xaxis: {
+                    title: 'Parte Real (Re)',
+                    range: [state.centerRe - state.radius - padding, state.centerRe + state.radius + padding],
+                    scaleanchor: 'y',
+                    scaleratio: 1
+                },
+                yaxis: {
+                    title: 'Parte Imaginaria (Im)',
+                    range: [state.centerIm - state.radius - padding, state.centerIm + state.radius + padding]
+                },
+                showlegend: true,
+                plot_bgcolor: 'rgba(0,0,0,0.1)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#f1f2f6' },
+                annotations: arrowIndices.map((idx, i) => {
+                    const point = points[idx];
+                    const nextIdx = (idx + 1) % points.length;
+                    const nextPoint = points[nextIdx];
+                    
+                    const dx = nextPoint.z.re - point.z.re;
+                    const dy = nextPoint.z.im - point.z.im;
+                    const norm = Math.sqrt(dx*dx + dy*dy);
+                    
+                    const arrowLength = state.radius * 0.15;
+                    return {
+                        ax: point.z.re,
+                        ay: point.z.im,
+                        x: point.z.re + dx/norm * arrowLength,
+                        y: point.z.im + dy/norm * arrowLength,
+                        showarrow: true,
+                        arrowhead: 2,
+                        arrowsize: 0.8,
+                        arrowwidth: 2,
+                        arrowcolor: state.direction === 'ccw' ? '#00cec9' : '#e74c3c'
+                    };
+                })
+            };
+            
+            Plotly.react('graph', data, layout);
+        }
+    </script>
+</body>
+</html>
